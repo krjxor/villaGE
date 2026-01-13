@@ -1,11 +1,70 @@
-fetch("/api/rent", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name,
-    studentId,
-    phone,
-    item
-  })
-})
+<hr />
 
+<h2>대여 신청</h2>
+
+<label>대여물품</label><br />
+<select id="itemSelect">
+  <option value="계산기">계산기</option>
+  <option value="담요">담요</option>
+  <option value="우산">우산</option>
+</select>
+
+<br /><br />
+
+<label>이름</label><br />
+<input id="nameInput" type="text" placeholder="이름" />
+
+<br /><br />
+
+<label>학번</label><br />
+<input id="studentIdInput" type="number" placeholder="학번(숫자)" />
+
+<br /><br />
+
+<label>연락처</label><br />
+<input id="phoneInput" type="text" placeholder="010-xxxx-xxxx" />
+
+<br /><br />
+
+<button id="submitBtn">신청하기</button>
+
+<p id="resultMsg"></p>
+
+<script>
+  const submitBtn = document.getElementById("submitBtn");
+  const resultMsg = document.getElementById("resultMsg");
+
+  submitBtn.addEventListener("click", async () => {
+    resultMsg.textContent = "전송 중...";
+
+    const item = document.getElementById("itemSelect").value;
+    const name = document.getElementById("nameInput").value.trim();
+    const studentId = document.getElementById("studentIdInput").value.trim();
+    const phone = document.getElementById("phoneInput").value.trim();
+
+    if (!name || !studentId || !phone) {
+      resultMsg.textContent = "이름/학번/연락처를 모두 입력해줘.";
+      return;
+    }
+
+    try {
+      const resp = await fetch("/api/rent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, studentId, phone, item }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok || !data.success) {
+        resultMsg.textContent = "실패: " + (data.message || "알 수 없는 오류");
+        console.log(data);
+        return;
+      }
+
+      resultMsg.textContent = `완료! 노션에 등록됨 (page_id: ${data.notion_page_id})`;
+    } catch (e) {
+      resultMsg.textContent = "에러: " + e.message;
+    }
+  });
+</script>
